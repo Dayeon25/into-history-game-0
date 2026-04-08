@@ -121,20 +121,20 @@ export default function ChatInterface({ character, initialMessages = [], storyId
 
   const getMessageAvatar = (msg: Message) => {
     if (msg.role === 'user') {
-      return character.imageUrl || `https://picsum.photos/seed/player-${storyId}/200/200`;
+      return character.imageUrl || `https://loremflickr.com/200/200/person,portrait,face?lock=${storyId}`;
     }
     
     // Try to detect a speaker in the message content (e.g., "**Name**: ...")
     const speakerMatch = msg.content.match(/^(\*\*|__)?([^:*]+)(\*\*|__)?\s*[:：]/);
     if (speakerMatch) {
       const speakerName = speakerMatch[2].trim();
-      // If the speaker name is the same as the user's character name, it's probably a mistake in the model's output or a self-reference, 
-      // but usually the model plays other characters.
-      return `https://picsum.photos/seed/npc-${speakerName}/200/200`;
+      // Use a consistent seed for the same NPC name
+      const nameSeed = speakerName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      return `https://loremflickr.com/200/200/person,portrait,face?lock=${nameSeed}`;
     }
 
-    // Default image for the "History Master" or unnamed NPC - using a seed that's more likely to be a person
-    return `https://picsum.photos/seed/person-${character.era}-narrator/200/200`;
+    // Default image for the "History Master" or unnamed NPC
+    return `https://loremflickr.com/200/200/person,portrait,face?lock=${character.era.length}`;
   };
 
   return (
@@ -268,7 +268,7 @@ export default function ChatInterface({ character, initialMessages = [], storyId
             <div className="flex gap-4">
               <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 shadow-sm border-2 border-white relative bg-accent/10">
                 <img 
-                  src={`https://picsum.photos/seed/narrator-${character.era}/200/200`} 
+                  src={`https://loremflickr.com/200/200/person,portrait,face?lock=${character.era.length + 100}`} 
                   alt="Loading"
                   className="w-full h-full object-cover opacity-40 grayscale"
                   referrerPolicy="no-referrer"
