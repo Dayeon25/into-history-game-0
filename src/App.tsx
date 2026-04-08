@@ -51,11 +51,6 @@ export default function App() {
       </div>
 
       <header className="mb-12 text-center relative z-10 w-full max-w-5xl flex flex-col items-center">
-        {!process.env.GEMINI_API_KEY && (
-          <div className="w-full bg-red-500/10 border border-red-500/20 text-red-600 p-3 rounded-xl mb-6 text-sm font-medium">
-            ⚠️ GEMINI_API_KEY가 설정되지 않았습니다. Vercel 설정에서 환경 변수를 추가해주세요.
-          </div>
-        )}
         <div className="w-full flex justify-between items-center mb-8">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
