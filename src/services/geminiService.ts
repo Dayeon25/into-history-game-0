@@ -4,7 +4,7 @@ import { Character, Message } from "../types";
 const getAI = () => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("GEMINI_API_KEY is missing. Please set it in your environment variables.");
+    console.warn("GEMINI_API_KEY is missing. AI features will not work until configured in environment variables.");
   }
   return new GoogleGenAI({ apiKey: apiKey || "" });
 };
@@ -37,8 +37,12 @@ export async function generateHistoricalResponse(
   `;
 
   try {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("API_KEY_MISSING");
+    }
+
     const chat = ai.chats.create({
-      model: "gemini-3-flash-preview",
+      model: "gemini-flash-latest",
       config: {
         systemInstruction,
       },
@@ -53,9 +57,12 @@ export async function generateHistoricalResponse(
     });
 
     return result.text;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Chat Error:", error);
-    throw error;
+    if (error.message === "API_KEY_MISSING") {
+      throw new Error("API 키가 설정되지 않았습니다. Vercel 설정에서 GEMINI_API_KEY를 추가해주세요.");
+    }
+    throw new Error("대화 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
   }
 }
 
@@ -73,6 +80,10 @@ export async function generateCharacterImage(character: Character) {
   `;
 
   try {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("API_KEY_MISSING");
+    }
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-image",
       contents: { parts: [{ text: prompt }] },

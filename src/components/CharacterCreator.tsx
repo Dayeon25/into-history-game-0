@@ -36,31 +36,17 @@ export default function CharacterCreator({ onComplete }: Props) {
   const handleStart = async () => {
     setIsGeneratingImage(true);
     try {
-      // Create character object first
-      const characterData: Character = {
-        id: self.crypto.randomUUID(),
-        name: char.name || '무명',
-        gender: char.gender || 'male',
-        era: char.era || 'joseon',
-        role: char.role || '평민',
-        description: char.description || '',
-        traits: char.traits || [],
-      };
-
-      const imageUrl = await generateCharacterImage(characterData);
-      onComplete({ ...characterData, imageUrl: imageUrl || undefined });
+      // Set a timeout for image generation
+      const imagePromise = generateCharacterImage(char as Character);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("TIMEOUT")), 15000)
+      );
+      
+      const imageUrl = await Promise.race([imagePromise, timeoutPromise]) as string | null;
+      onComplete({ ...char, imageUrl: imageUrl || undefined } as Character);
     } catch (error) {
-      console.error("Character creation error:", error);
-      // Fallback to complete without image if something fails
-      onComplete({
-        id: self.crypto.randomUUID(),
-        name: char.name || '무명',
-        gender: char.gender || 'male',
-        era: char.era || 'joseon',
-        role: char.role || '평민',
-        description: char.description || '',
-        traits: char.traits || [],
-      } as Character);
+      console.error("Image generation failed or timed out", error);
+      onComplete(char as Character);
     } finally {
       setIsGeneratingImage(false);
     }

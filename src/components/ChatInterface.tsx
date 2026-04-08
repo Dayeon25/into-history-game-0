@@ -85,9 +85,10 @@ export default function ChatInterface({ character, initialMessages = [], storyId
       const finalMessages = [...newMessages, modelMsg];
       setMessages(finalMessages);
       saveToStorage(finalMessages);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'model', content: "죄송합니다. 시공간의 뒤틀림이 발생했습니다. 다시 시도해주세요." }]);
+      const errorMessage = error.message || "죄송합니다. 시공간의 뒤틀림이 발생했습니다. 다시 시도해주세요.";
+      setMessages(prev => [...prev, { role: 'model', content: `**시스템**: ${errorMessage}` }]);
     } finally {
       setIsLoading(false);
     }
@@ -121,15 +122,15 @@ export default function ChatInterface({ character, initialMessages = [], storyId
 
   const getMessageAvatar = (msg: Message) => {
     if (msg.role === 'user') {
-      return character.imageUrl || `https://loremflickr.com/200/200/person,portrait,face?lock=${storyId}`;
+      return character.imageUrl || `https://loremflickr.com/200/200/portrait,person,face?lock=${storyId}`;
     }
     
     // Era specific keywords for better matching
     const eraKeywords: Record<string, string> = {
-      ancient_rome: 'roman,ancient,soldier,senator',
-      joseon: 'korean,traditional,hanbok,oriental',
-      victorian: 'victorian,19thcentury,vintage,gentleman,lady',
-      renaissance: 'renaissance,painting,medieval,europe'
+      ancient_rome: 'ancient,roman,soldier',
+      joseon: 'korean,traditional,hanbok',
+      victorian: 'victorian,19thcentury,vintage',
+      renaissance: 'renaissance,painting,medieval'
     };
     const eraTag = eraKeywords[character.era] || 'history';
 
@@ -140,19 +141,19 @@ export default function ChatInterface({ character, initialMessages = [], storyId
       
       // Simple gender detection based on common Korean terms
       let genderTag = '';
-      if (speakerName.match(/(부인|낭자|여인|소녀|할머니|왕비|공주|마님)/)) {
+      if (speakerName.match(/(부인|낭자|여인|소녀|할머니|왕비|공주|마님|아가씨|어머니)/)) {
         genderTag = ',woman,female';
-      } else if (speakerName.match(/(장군|대감|선비|도령|소년|할아버지|왕|세자|나리)/)) {
+      } else if (speakerName.match(/(장군|대감|선비|도령|소년|할아버지|왕|세자|나리|아버지|무사)/)) {
         genderTag = ',man,male';
       }
 
       // Use a consistent seed for the same NPC name
       const nameSeed = speakerName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      return `https://loremflickr.com/200/200/person,portrait,face,${eraTag}${genderTag}?lock=${nameSeed}`;
+      return `https://loremflickr.com/200/200/portrait,person,face,${eraTag}${genderTag}?lock=${nameSeed}`;
     }
 
     // Default image for the "History Master" or unnamed NPC
-    return `https://loremflickr.com/200/200/person,portrait,face,${eraTag}?lock=${character.era.length}`;
+    return `https://loremflickr.com/200/200/portrait,person,face,${eraTag}?lock=${character.era.length}`;
   };
 
   return (
@@ -286,7 +287,7 @@ export default function ChatInterface({ character, initialMessages = [], storyId
             <div className="flex gap-4">
               <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 shadow-sm border-2 border-white relative bg-accent/10">
                 <img 
-                  src={`https://loremflickr.com/200/200/person,portrait,face,${character.era === 'joseon' ? 'korean' : character.era === 'renaissance' ? 'renaissance' : character.era === 'ancient_rome' ? 'roman' : 'victorian'}?lock=${character.era.length + 100}`} 
+                  src={`https://loremflickr.com/200/200/portrait,person,face,${character.era === 'joseon' ? 'korean' : character.era === 'renaissance' ? 'renaissance' : character.era === 'ancient_rome' ? 'roman' : 'victorian'}?lock=${character.era.length + 100}`} 
                   alt="Loading"
                   className="w-full h-full object-cover opacity-40 grayscale"
                   referrerPolicy="no-referrer"
